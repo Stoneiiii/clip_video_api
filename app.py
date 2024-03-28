@@ -93,7 +93,6 @@ def process_clip_task(clip_id, video_url, start_time, end_time):
                         if progress > 100:
                             progress = 100
                             clip_tasks[clip_id] = {'status': 'processing', 'progress': progress, 'id': clip_id}
-                            response_msg = response_msg.update()
                             socketio.emit("response",  # 绑定通信
                                           clip_tasks[clip_id],  # 返回socket数据
                                           namespace="/clip_video_api")
