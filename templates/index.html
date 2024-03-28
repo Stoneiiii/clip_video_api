@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcdn.net/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+<script type="text/javascript" charset="UTF-8">
+
+    $(document).ready(function() {
+        namespace = '/clip_video_api';
+        var socket = io.connect("http://" + document.domain + ":" + location.port + namespace);
+
+        socket.on('response', function(recv) {
+            console.log('视频' + recv["id"] + ': ' + recv['progress'])
+
+        });
+
+        socket.on('complete_msg', function(recv) {
+            console.log('clip_id： ' + recv["clip_id"] + "url: " + recv["download_url"]);
+            var currentUrl = window.location.href;
+            window.alert('剪辑完成，下载连接：'+ currentUrl + recv["download_url"]);
+        });
+    });
+</script>
+</body>
+</html>
