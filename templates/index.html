@@ -6,6 +6,8 @@
     <script type="text/javascript" src="https://cdn.bootcdn.net/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
+<a href="/logout">注销</a>
+<h1>{{ username }}您好!</h1>
 <script type="text/javascript" charset="UTF-8">
 
     $(document).ready(function() {
@@ -17,7 +19,7 @@
 
         });
 
-        socket.on('complete_msg', function(recv) {
+        socket.on('{{ username }}', function(recv) {
             console.log('clip_id： ' + recv["clip_id"] + "url: " + recv["download_url"]);
             var currentUrl = window.location.href;
             window.alert('剪辑完成，下载连接：'+ currentUrl + recv["download_url"]);
