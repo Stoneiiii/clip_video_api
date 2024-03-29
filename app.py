@@ -205,6 +205,10 @@ def download_clip(clip_id):
     :param clip_id: 视频id
     :return: 视频文件
     """
+    # check user
+    if session.get("username") == clip_tasks[clip_id]["user"]:
+        return jsonify({'error': 'user unauthorized'}), 404
+
     clip_filename_path = os.path.join(TMP_DIR, f'clip_{clip_id}.mp4')
     if os.path.exists(clip_filename_path):
         return send_file(clip_filename_path, as_attachment=True)
@@ -222,6 +226,7 @@ def get_clip_video_status(clip_id):
     :return: dic 视频剪辑状态{'status': 状态processing/complete/fail, 'progress': 进度百分比, 'id': 视频id}
     """
     if clip_id in clip_tasks:
+        # check user
         if session.get("username") == clip_tasks[clip_id]["user"]:
             return clip_tasks[clip_id]
         else:
@@ -252,7 +257,7 @@ def process_clip_task(clip_id, video_url, start_time, end_time):
     progress = 0
     while True:
         output = process.stdout.readline()
-        print(output)
+        # print(output)
         if not output and process.poll() is not None:
             break
         if output:
@@ -266,22 +271,16 @@ def process_clip_task(clip_id, video_url, start_time, end_time):
                         cur_time = res.group()
                         progress = round(parse_time2sec(cur_time) / parse_time2sec(duration) * 100, 2)
                         clip_tasks[clip_id]['progress'] = progress
-                        socketio.emit("response",  # 绑定通信
-                                      clip_tasks[clip_id],  # 返回socket数据
-                                      namespace="/clip_video_api")
+                        print(clip_tasks[clip_id])
                         if progress > 100:
                             progress = 100
                             clip_tasks[clip_id]['progress'] = progress
-                            socketio.emit("response",  # 绑定通信
-                                          clip_tasks[clip_id],  # 返回socket数据
-                                          namespace="/clip_video_api")
+                            print(clip_tasks[clip_id])
                             break
             # print(output.strip(), flush=True)
     progress = 100
     clip_tasks[clip_id]['progress'] = progress
-    socketio.emit("response",  # 绑定通信
-                  clip_tasks[clip_id],  # 返回socket数据
-                  namespace="/clip_video_api")
+    print(clip_tasks[clip_id])
     # 检查转码是否成功
     if process.returncode != 0:
         # 转码失败

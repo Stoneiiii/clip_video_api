@@ -14,10 +14,6 @@
         namespace = '/clip_video_api';
         var socket = io.connect("http://" + document.domain + ":" + location.port + namespace);
 
-        socket.on('response', function(recv) {
-            console.log('视频' + recv["id"] + ': ' + recv['progress'])
-
-        });
 
         socket.on('{{ username }}', function(recv) {
             console.log('clip_id： ' + recv["clip_id"] + "url: " + recv["download_url"]);
