@@ -7,6 +7,8 @@ import re
 import uuid
 from functools import wraps
 import config
+from flask_sqlalchemy import SQLAlchemy
+import datetime
 
 # 开启线程模式，防止socketio收不到信息
 async_mode = "threading"
@@ -25,6 +27,31 @@ FFMPEG_BIN_DIR = app.config.get('FFMPEG_BIN_DIR')  # ffmpeg 脚本目录
 # 初始化socketio
 socketio = SocketIO(app, async_mode=async_mode)
 
+# 创建数据库组件对象
+db = SQLAlchemy(app)
+class Clip_video_db(db.Model):
+    __tablename__ = 'user_submission'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255))
+    time = db.Column(db.DateTime, nullable=False)
+
+    def __repr__(self):
+        return f"<UserSubmission(username='{self.username}', time='{self.time}')>"
+
+
+def store_submit(username):
+    """
+    把用户请求存放在本地数据库中
+    :param username: 用户名
+    :return:
+    """
+    # 创建 UserSubmission 对象并保存到数据库
+    user_submission = Clip_video_db(username=username, time=datetime.datetime.now())
+    db.session.add(user_submission)
+    db.session.commit()
+
+
 # 初始化视频处理日志
 # {'status': 状态processing/complete/fail, 'progress': 进度百分比, 'id': 视频id, 'user':用户名}
 clip_tasks = {}
@@ -37,6 +64,7 @@ def login_required(func):
     :param func:
     :return:
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if session.get("username") != None and session.get("is_login") == True:
@@ -152,6 +180,9 @@ def clip_video():
         clip_id = str(uuid.uuid4())
         # clip_id = "cb3ffb48-50cd-44eb-8b1f-43443"
         clip_tasks[clip_id] = {'status': 'processing', 'progress': 0, 'id': clip_id, 'user': session.get("username")}
+
+        # 写入请求记录
+        store_submit(session.get("username"))
 
         # Start a new thread to handle the clip task
         thread = threading.Thread(target=process_clip_task, args=(clip_id, video_url, start_time, end_time))
